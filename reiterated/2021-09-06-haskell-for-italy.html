@@ -1,0 +1,239 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+    <head>
+        <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <title>multiversum - haskell for italy</title>
+        <link rel="stylesheet" type="text/css" href="../css/default.css" />
+    </head>
+    <body class="font-clear">
+        <div id="header">
+            <div id="logo">
+                <a href="../">multiversum</a>
+            </div>
+            <div id="navigation">
+                <a href="../about.html">about</a>
+                <a href="../time.html">time machine</a>
+                <a href="../reitera.html">reitera</a>
+                <a href="../contact.html">contact</a>
+            </div>
+        </div>
+
+        <div id="content">
+            <h1>haskell for italy</h1>
+
+            <h2 id="git-push-italia-head">$ git push italia HEAD</h2>
+<h3 id="an-unique-challenge">an unique challenge</h3>
+<p>this gave me the opportunity to explore our limits, and push my profession beyond my comfort zone</p>
+<div class="incremental">
+<p>haskell didn’t let me down</p>
+</div>
+<div class="incremental">
+<ul>
+<li><code>jgm/pandoc</code> a rather powerful tool with a global community of users</li>
+<li><code>italia/docs-italia-comandi-conversione</code> an interface for Italy</li>
+<li><code>italia/docs-italia-pandoc-filters</code> details, or a framework for Italy</li>
+</ul>
+<div class="notes">
+<p>it’s rather succinct work. it aims at design transparency by being immediate and sometimes intentionally raw, like in the documentation of the commands which are also notes for the next developer. this style enables easy sharing which could produce more noise than signal and a good way to find out is to ask new users. the documentation corpus has also been flux, and it’s now quickly crystallising for a development break</p>
+</div>
+</div>
+<h3 id="innovation-from-working-software">innovation from working software</h3>
+<p>the journey started by simply <em>hammering pandoc here and there to fix this and this</em></p>
+<div class="incremental">
+<p>as a small half-remote team we where all busy on multiple fronts so i learned to browse a broad scope through my specific expertise</p>
+</div>
+<div class="incremental">
+<p>i found out how starting from a successful piece of software can be more impactful than greenfield projects</p>
+</div>
+<h3 id="connecting-seas">connecting seas</h3>
+<p>innovation rooted on the existing is like connecting seas, turbulences feel chaotic and dangerous</p>
+<div class="incremental">
+<p>keeping an engineering and creative focus while shifting perspectives in the public eye</p>
+<hr />
+<figure>
+<img src="../images/pandoctopus.svg" alt="a rational animal" /><figcaption aria-hidden="true">a rational animal</figcaption>
+</figure>
+</div>
+<h3 id="factoring-conversion-logic">factoring conversion logic</h3>
+<div class="incremental">
+<ul class="incremental">
+<li>format templates</li>
+<li>conversion cases</li>
+<li>syntax errors</li>
+<li>sphinx features</li>
+<li>semantic definitions</li>
+<li>existing issues</li>
+</ul>
+</div>
+<h3 id="software-as-an-object-in-an-highly-dimensional-space">software as an object in an highly dimensional space</h3>
+<p>code grows towards many goals, expanding on multiple dimensions is avoided in agile, where the priority direction shifts over time</p>
+<p>in a context of political uncertainty, the problem has not been to self-organise, but to manage and communicate a value whose definition changes over time</p>
+<h3 id="do-you-want-spanning-cells">do you want spanning cells?</h3>
+<ul>
+<li>user call close to the beginning of the project</li>
+<li>huge issue involving the hearth of pandoc</li>
+<li>seeding investment in analysis and communication</li>
+<li>rare other occurrences</li>
+</ul>
+<h3 id="how-do-we-engineer-software">how do we engineer software?</h3>
+<ul>
+<li>like a plant, perfectly integrated in a rather stable environment</li>
+<li>like a packet, cyclically delivered at the user’s devices</li>
+<li>like a ship, whose use depends higly on the pilots and the territory</li>
+<li>like a virus, whose success is defined by replication</li>
+</ul>
+<h2 id="a-journey-with-code">a journey with code</h2>
+<h3 id="evolutionary-prototyping-a-ship">evolutionary prototyping a ship</h3>
+<p>i leaned on haskell’s quality for refactorings and it enabled me to react swiftly and focus on the domain more than on the structure</p>
+<p>prototyping makes little assumptions about what can we do, relying on user testing in order to collect proofs of concept. for many users a process of evolutionary prototyping is a new experience, and in a public context we want to manage expectations carefully</p>
+<div class="notes">
+<p>one area where the technology fell short has been deployment, where top-down design reacted faster</p>
+</div>
+<h3 id="integral-features">integral features</h3>
+<p>a piece of software can move through different balance points in the space of its integral features</p>
+<p>every dimension implies opportunities and tradeoffs</p>
+<p>through the dimensions we can express tensions as actionable questions</p>
+<h3 id="reliability-and-usability">reliability and usability</h3>
+<p>our main <code>converti</code> command was</p>
+<ul>
+<li>a bash script</li>
+<li>a turtle script</li>
+</ul>
+<p>it’s a case where a development direction has been deepened</p>
+<p>know your turtle modules</p>
+<h3 id="a-doctest-packed-with-its-function">a doctest packed with its function</h3>
+<pre><code>-- | testable logic core for breakSections
+-- &gt;&gt;&gt; breakIntro testDemo &quot;brh h rhb brhb&quot;
+-- (&quot;b&quot;,[&quot;rh &quot;,&quot;h &quot;,&quot;rhb b&quot;,&quot;rhb&quot;])
+-- &gt;&gt;&gt; breakIntro (const []) &quot;bbrhb bla bla&quot;
+-- (&quot;bbrhb bla bla&quot;,[])
+-- &gt;&gt;&gt; breakIntro testDemo &quot;bh h hb bhb&quot;
+-- (&quot;b&quot;,[&quot;h &quot;,&quot;h &quot;,&quot;hb b&quot;,&quot;hb&quot;])
+breakIntro :: Eq a =&gt; ([a] -&gt; [a]) -&gt; [a] -&gt; ([a], [[a]])
+breakIntro c l
+  | null (c h) = (h, t)
+  | otherwise  = ([], multiBroken)
+  where multiBroken = multiPrefixBreak c [] l
+        h = head multiBroken
+        t = tail multiBroken</code></pre>
+<h3 id="a-chart-for-the-path">a chart for the path</h3>
+<figure>
+<img src="../images/specification.svg" alt="specification" /><figcaption aria-hidden="true">specification</figcaption>
+</figure>
+<h2 id="other-process-dimensions">other process dimensions</h2>
+<h3 id="opportunistic-complexity">opportunistic complexity</h3>
+<div class="notes">
+<p>code complexity that is not easily explained by current user expectations</p>
+</div>
+<p>rise fragmentation</p>
+<div class="incremental">
+<p>fall simplification</p>
+</div>
+<div class="incremental">
+<p>seeding and pruning</p>
+<div class="nonincremental">
+<ul>
+<li>new ideas and weight adjustments affect software paths like in a neural network</li>
+<li>notes can become comments or documentation</li>
+<li>creativity peak in june, <a href="https://github.com/italia/docs-italia-pandoc-filters/blob/master/filters/filtro-acronimi.hs#L15-L19">filter in italian</a></li>
+<li>opportunistic seeding and pruning</li>
+</ul>
+</div>
+<div class="notes">
+<p>diversità per la ricerca conformità per la comunicazione</p>
+</div>
+</div>
+<h3 id="expose-and-codify">expose and codify</h3>
+<div class="incremental">
+<p>our clarity of action is in a dialogue with the simplicity of our code</p>
+</div>
+<h2 id="domain-dimensions">domain dimensions</h2>
+<h3 id="working-with-semantics">working with semantics</h3>
+<ul>
+<li>portability and expressivity</li>
+<li>content and presentation layers</li>
+</ul>
+<p>which tools can we own to collaborate on content?</p>
+<p>which tools can we own to collaborate on style?</p>
+<h3 id="empowering-and-simplifying">empowering and simplifying</h3>
+<p>what is devops?</p>
+<div class="incremental">
+<pre><code>rst2all.sh
+ pandoc esempio.rst -o esempio.html
+ pandoc esempio.rst -o esempio.md
+ pandoc esempio.rst -o esempio.odt
+ pandoc esempio.rst -o esempio.docx</code></pre>
+</div>
+<div class="incremental">
+<p>a seamless development experience</p>
+<p>one starts spotting regularities, factoring resources. in an interpreter, repeting is not an ergonomical problem</p>
+<p>the prototypes grown from operating in repos supported both cases through the changes</p>
+</div>
+<h3 id="online-or-batch">online or batch</h3>
+<p>with haskell i could work offline, for many users work in batches is uncommon, yet technology is not always up to our potential</p>
+<h2 id="options-for-whole-communities">options for whole communities</h2>
+<h3 id="communities-define-themselves-and-communicate-also-through-the-source-code">communities define themselves and communicate also through the source code</h3>
+<p>an example is defining the level of segregation, do we want to stay global?</p>
+<ul>
+<li>the main entry point’s README was not in italian</li>
+<li>the pandoc manual</li>
+<li>quotes filter to merge</li>
+</ul>
+<h3 id="codesign">codesign</h3>
+<p>for many of us it’s natural to use the command line and markup languages</p>
+<p>my ambition was adoption through sustained enthusiasm</p>
+<p>besides our overall throughput, this depends on the way we communicate our work</p>
+<p>faster horses</p>
+<p><em>costruire sensibilità futura</em></p>
+<hr />
+<figure>
+<img src="../images/communities.svg" alt="communities" /><figcaption aria-hidden="true">communities</figcaption>
+</figure>
+<h3 id="community-and-software-development">community and software development</h3>
+<p>software translators</p>
+<p>we are not used to truly actionable sharing</p>
+<p>in collaborative design the focus of the communication are not the existing artifacts</p>
+<p>engage users (attivare gli utenti)</p>
+<p>we don’t know how the crowd is going to approach a piece of software and its bottlenecks, another reason why opening the decision process is worth its cost</p>
+<p>the community is also being codesigned</p>
+<h3 id="do-you-want-a-sphinx-format">do you want a sphinx format?</h3>
+<ul>
+<li>emerged as an option to consider</li>
+<li>seeding investment in analysis and communication</li>
+<li><a href="https://groups.google.com/forum/#!topic/pandoc-discuss/5W-l10MzeG8">community call at the beginning of April</a></li>
+<li>user call four months later and close to project rollout</li>
+</ul>
+<h3 id="users-and-communication-events">users and communication events</h3>
+<p>some members become voices for whole communities</p>
+<p>changing user rings defined by user welcomes have a development value and stake</p>
+<p>ownership is fuzzy in the different sensitivities and it gets defined by such roles and by events</p>
+<ul>
+<li>i put it here in front of everyone</li>
+</ul>
+<h3 id="humble-accessible-codesign">humble accessible codesign</h3>
+<p>when a system is highly flexible, the context provides it a source of stability. i relied on users to support at the most practical level</p>
+<p>low-volume public message channels are less expressive than other technologies but more accessible</p>
+<p>they are our public communication infrastructure through which we can build effective collaboration</p>
+<p>this is enabled by confidence of expression</p>
+<h2 id="the-laboratory">the laboratory</h2>
+<h3 id="discontrol">discontrol</h3>
+<p>trello, github issues, slack messages, github notifications, twitter</p>
+<ul>
+<li>dive in and dive out guided by motivation</li>
+<li>concentration means keeping equal distance</li>
+<li>bringing back data models to us</li>
+<li>currently working on time tracking</li>
+</ul>
+<h3 id="stress-and-quality">stress and quality</h3>
+<p>an amount of hours and a maximum date</p>
+<h2 id="thanks">thanks</h2>
+
+        </div>
+        <div id="footer">
+            Site proudly generated by
+            <a href="http://jaspervdj.be/hakyll">Hakyll</a>
+        </div>
+    </body>
+</html>
