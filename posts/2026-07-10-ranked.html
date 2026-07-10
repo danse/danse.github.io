@@ -1,0 +1,136 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+    <head>
+        <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <title>multiversum - ranked</title>
+        <link rel="stylesheet" type="text/css" href="../css/default.css" />
+    </head>
+    <body class="font-clear">
+        <div id="header">
+            <div id="logo">
+                <a href="../">multiversum</a>
+            </div>
+            <div id="navigation">
+                <a href="../about.html">about</a>
+                <a href="../time.html">log</a>
+                <a href="../reitera.html">reitera</a>
+                <a href="../drift.html">drift</a>
+                <a href="../contact.html">contact</a>
+            </div>
+        </div>
+
+        <div id="content">
+            <h1>ranked</h1>
+
+            <div class="info">
+    Posted on July 10, 2026
+    
+</div>
+
+<h1 id="building-ranked-a-session-in-test-driven-haskell">Building <code>ranked</code>: a Session in Test-Driven Haskell</h1>
+<p>The idea: keep a file of URLs with user-assigned appreciation scores,
+pick one proportionally to its score, open it, and let the user adjust
+the score afterwards.</p>
+<h2 id="the-seed">The seed</h2>
+<p>A skeletal Cabal project with a skeletal data type:</p>
+<div class="sourceCode" id="cb1"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="kw">data</span> <span class="dt">D</span> <span class="ot">=</span> <span class="dt">D</span> <span class="dt">String</span> <span class="dt">Integer</span></span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a>main <span class="ot">=</span> <span class="fu">putStrLn</span> <span class="st">&quot;Hello, Haskell!&quot;</span></span></code></pre></div>
+<p>The counter is an appreciation score — not a visit count, but a weight
+the user sets and adjusts. Negative scores mean you want to see a link
+less often.</p>
+<h2 id="the-core-proportional-selection">The core: proportional selection</h2>
+<p>The heart of the tool is <code>cycle</code>. Given a list of <code>(url, score)</code> pairs,
+pick one with probability proportional to its score, return the URL and
+the list with the chosen line moved to the bottom.</p>
+<p>We started with tests:</p>
+<div class="sourceCode" id="cb2"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a>testCycleSingle <span class="ot">=</span> <span class="dt">TestCase</span> <span class="op">$</span> <span class="kw">do</span></span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a>  <span class="kw">let</span> ls <span class="ot">=</span> [<span class="dt">Line</span> <span class="st">&quot;a.com&quot;</span> <span class="dv">5</span>]</span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a>  (url, ls') <span class="ot">&lt;-</span> <span class="fu">cycle</span> ls</span>
+<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a>  assertEqual <span class="st">&quot;single line returns its URL&quot;</span> <span class="st">&quot;a.com&quot;</span> url</span>
+<span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a>  assertEqual <span class="st">&quot;single line list unchanged&quot;</span> ls ls'</span>
+<span id="cb2-6"><a href="#cb2-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-7"><a href="#cb2-7" aria-hidden="true" tabindex="-1"></a>testCycleSelectedMovedToBottom <span class="ot">=</span> <span class="dt">TestCase</span> <span class="op">$</span> <span class="kw">do</span></span>
+<span id="cb2-8"><a href="#cb2-8" aria-hidden="true" tabindex="-1"></a>  <span class="kw">let</span> ls <span class="ot">=</span> [<span class="dt">Line</span> <span class="st">&quot;a.com&quot;</span> <span class="dv">5</span>, <span class="dt">Line</span> <span class="st">&quot;b.com&quot;</span> <span class="dv">3</span>, <span class="dt">Line</span> <span class="st">&quot;c.com&quot;</span> <span class="dv">1</span>]</span>
+<span id="cb2-9"><a href="#cb2-9" aria-hidden="true" tabindex="-1"></a>  (url, ls') <span class="ot">&lt;-</span> <span class="fu">cycle</span> ls</span>
+<span id="cb2-10"><a href="#cb2-10" aria-hidden="true" tabindex="-1"></a>  assertBool <span class="st">&quot;selected url is one of the input urls&quot;</span></span>
+<span id="cb2-11"><a href="#cb2-11" aria-hidden="true" tabindex="-1"></a>    (url <span class="ot">`elem`</span> <span class="fu">map</span> (\(<span class="dt">Line</span> u _) <span class="ot">-&gt;</span> u) ls)</span>
+<span id="cb2-12"><a href="#cb2-12" aria-hidden="true" tabindex="-1"></a>  assertEqual <span class="st">&quot;list length preserved&quot;</span> (<span class="fu">length</span> ls) (<span class="fu">length</span> ls')</span>
+<span id="cb2-13"><a href="#cb2-13" aria-hidden="true" tabindex="-1"></a>  assertEqual <span class="st">&quot;selected line moved to bottom&quot;</span> url (<span class="kw">let</span> (<span class="dt">Line</span> u _) <span class="ot">=</span> <span class="fu">last</span> ls' <span class="kw">in</span> u)</span></code></pre></div>
+<p>The first implementation was a stub — <code>return ("", ls)</code>. Every test
+failed. Then the real weighted selection:</p>
+<div class="sourceCode" id="cb3"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="fu">cycle</span><span class="ot"> ::</span> [<span class="dt">Line</span>] <span class="ot">-&gt;</span> <span class="dt">IO</span> (<span class="dt">String</span>, [<span class="dt">Line</span>])</span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a><span class="fu">cycle</span> ls <span class="ot">=</span> <span class="kw">do</span></span>
+<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a>  <span class="kw">if</span> <span class="fu">null</span> ls</span>
+<span id="cb3-4"><a href="#cb3-4" aria-hidden="true" tabindex="-1"></a>    <span class="kw">then</span> <span class="fu">return</span> (<span class="st">&quot;&quot;</span>, ls)</span>
+<span id="cb3-5"><a href="#cb3-5" aria-hidden="true" tabindex="-1"></a>    <span class="kw">else</span> <span class="kw">do</span></span>
+<span id="cb3-6"><a href="#cb3-6" aria-hidden="true" tabindex="-1"></a>      <span class="kw">let</span> raw <span class="ot">=</span> <span class="fu">map</span> (\(<span class="dt">Line</span> _ n) <span class="ot">-&gt;</span> n) ls</span>
+<span id="cb3-7"><a href="#cb3-7" aria-hidden="true" tabindex="-1"></a>          shift <span class="ot">=</span> <span class="kw">if</span> <span class="fu">minimum</span> raw <span class="op">&lt;</span> <span class="dv">0</span> <span class="kw">then</span> <span class="op">-</span>(<span class="fu">minimum</span> raw) <span class="op">+</span> <span class="dv">1</span> <span class="kw">else</span> <span class="dv">0</span></span>
+<span id="cb3-8"><a href="#cb3-8" aria-hidden="true" tabindex="-1"></a>          weights <span class="ot">=</span> <span class="fu">map</span> (\n <span class="ot">-&gt;</span> n <span class="op">+</span> shift) raw</span>
+<span id="cb3-9"><a href="#cb3-9" aria-hidden="true" tabindex="-1"></a>          total  <span class="ot">=</span> <span class="fu">sum</span> weights</span>
+<span id="cb3-10"><a href="#cb3-10" aria-hidden="true" tabindex="-1"></a>      pick <span class="ot">&lt;-</span> randomRIO (<span class="dv">0</span>, total <span class="op">-</span> <span class="dv">1</span>)</span>
+<span id="cb3-11"><a href="#cb3-11" aria-hidden="true" tabindex="-1"></a>      <span class="kw">let</span> idx <span class="ot">=</span> select weights pick</span>
+<span id="cb3-12"><a href="#cb3-12" aria-hidden="true" tabindex="-1"></a>          (<span class="dt">Line</span> url _) <span class="ot">=</span> ls <span class="op">!!</span> idx</span>
+<span id="cb3-13"><a href="#cb3-13" aria-hidden="true" tabindex="-1"></a>          moved <span class="ot">=</span> <span class="fu">take</span> idx ls <span class="op">++</span> <span class="fu">drop</span> (idx <span class="op">+</span> <span class="dv">1</span>) ls <span class="op">++</span> [ls <span class="op">!!</span> idx]</span>
+<span id="cb3-14"><a href="#cb3-14" aria-hidden="true" tabindex="-1"></a>      <span class="fu">return</span> (url, moved)</span></code></pre></div>
+<p>The weighted selection is a linear scan through cumulative weights:</p>
+<div class="sourceCode" id="cb4"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="ot">select ::</span> [<span class="dt">Integer</span>] <span class="ot">-&gt;</span> <span class="dt">Integer</span> <span class="ot">-&gt;</span> <span class="dt">Int</span></span>
+<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a>select (w<span class="op">:</span>ws) n</span>
+<span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a>  <span class="op">|</span> n <span class="op">&lt;</span> w     <span class="ot">=</span> <span class="dv">0</span></span>
+<span id="cb4-4"><a href="#cb4-4" aria-hidden="true" tabindex="-1"></a>  <span class="op">|</span> <span class="fu">otherwise</span> <span class="ot">=</span> <span class="dv">1</span> <span class="op">+</span> select ws (n <span class="op">-</span> w)</span>
+<span id="cb4-5"><a href="#cb4-5" aria-hidden="true" tabindex="-1"></a>select []     _ <span class="ot">=</span> <span class="dv">0</span></span></code></pre></div>
+<h2 id="negative-scores">Negative scores</h2>
+<p>We explicitly support negative scores. A URL with -5 should still be
+selectable, just less likely than one with 5. The initial attempt used
+<code>max 0</code> to clamp negatives, which made them completely impassable —
+violating the spec. The fix: shift all weights so the minimum becomes 1.</p>
+<div class="sourceCode" id="cb5"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a>shift <span class="ot">=</span> <span class="kw">if</span> <span class="fu">minimum</span> raw <span class="op">&lt;</span> <span class="dv">0</span> <span class="kw">then</span> <span class="op">-</span>(<span class="fu">minimum</span> raw) <span class="op">+</span> <span class="dv">1</span> <span class="kw">else</span> <span class="dv">0</span></span>
+<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a>weights <span class="ot">=</span> <span class="fu">map</span> (\n <span class="ot">-&gt;</span> n <span class="op">+</span> shift) raw</span></code></pre></div>
+<p>Now even the most downvoted link has a non-zero chance.</p>
+<h2 id="up-and-down-the-user-adjusts-scores">up and down: the user adjusts scores</h2>
+<p>After <code>cycle</code> picks and opens a URL, the user runs the tool again with
+<code>-u</code> (upvote) or <code>-d</code> (downvote) to adjust that entry’s score. The tool
+moves it back into rotation at its new weight.</p>
+<p>These are pure functions on the last element — the one <code>cycle</code> just
+placed at the bottom:</p>
+<div class="sourceCode" id="cb6"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a><span class="ot">up ::</span> [<span class="dt">Line</span>] <span class="ot">-&gt;</span> [<span class="dt">Line</span>]</span>
+<span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a>up []     <span class="ot">=</span> []</span>
+<span id="cb6-3"><a href="#cb6-3" aria-hidden="true" tabindex="-1"></a>up ls     <span class="ot">=</span> <span class="fu">init</span> ls <span class="op">++</span> [bump (<span class="op">+</span><span class="dv">1</span>) (<span class="fu">last</span> ls)]</span>
+<span id="cb6-4"><a href="#cb6-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-5"><a href="#cb6-5" aria-hidden="true" tabindex="-1"></a><span class="ot">down ::</span> [<span class="dt">Line</span>] <span class="ot">-&gt;</span> [<span class="dt">Line</span>]</span>
+<span id="cb6-6"><a href="#cb6-6" aria-hidden="true" tabindex="-1"></a>down []   <span class="ot">=</span> []</span>
+<span id="cb6-7"><a href="#cb6-7" aria-hidden="true" tabindex="-1"></a>down ls   <span class="ot">=</span> <span class="fu">init</span> ls <span class="op">++</span> [bump (<span class="op">+</span>(<span class="op">-</span><span class="dv">1</span>)) (<span class="fu">last</span> ls)]</span>
+<span id="cb6-8"><a href="#cb6-8" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-9"><a href="#cb6-9" aria-hidden="true" tabindex="-1"></a><span class="ot">bump ::</span> (<span class="dt">Integer</span> <span class="ot">-&gt;</span> <span class="dt">Integer</span>) <span class="ot">-&gt;</span> <span class="dt">Line</span> <span class="ot">-&gt;</span> <span class="dt">Line</span></span>
+<span id="cb6-10"><a href="#cb6-10" aria-hidden="true" tabindex="-1"></a>bump f (<span class="dt">Line</span> url n) <span class="ot">=</span> <span class="dt">Line</span> url (f n)</span></code></pre></div>
+<p>The workflow: <code>ranked links.txt</code> → picks and opens a URL →
+<code>ranked -u links.txt</code> to increase its weight → <code>ranked -d links.txt</code>
+to decrease it.</p>
+<h2 id="parsing-serialisation-cli-flags">Parsing, serialisation, CLI flags</h2>
+<p>We wrote a <code>ReadP</code> parser that splits each line on the last comma
+(URLs can contain commas), HUnit tests for roundtrip properties, and
+later migrated from <code>getArgs</code> to optparse-applicative for declarative
+flags, <code>--help</code>, and mutual exclusion between <code>-u</code> and <code>-d</code>. Those
+parts are routine — the project structure tells the story:</p>
+<pre><code>ranked/
+├── app/Main.hs              # CLI entry point
+├── src/
+│   ├── Ranked.hs            # Line type, parser, serializer
+│   └── Ranked/Cycle.hs      # cycle, up, down, weighted selection
+├── tests/Test.hs            # 24 HUnit tests
+├── manual/
+│   ├── cli.sh               # integration tests
+│   └── coverage.sh           # HPC coverage report
+└── ranked.cabal</code></pre>
+<p>24 unit tests, 7 integration tests, ~88% expression coverage under
+GHC’s HPC. The whole thing is a single afternoon — test-first,
+documentation-last.</p>
+
+        </div>
+        <div id="footer">
+            Site proudly generated by
+            <a href="http://jaspervdj.be/hakyll">Hakyll</a>
+        </div>
+    </body>
+</html>
