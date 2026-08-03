@@ -1,0 +1,136 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+    <head>
+        <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <title>multiversum - 2026-08-03-tiversity</title>
+        <link rel="stylesheet" type="text/css" href="../css/default.css" />
+    </head>
+    <body class="font-personal">
+        <div id="header">
+            <div id="logo">
+                <a href="../">multiversum</a>
+            </div>
+            <div id="navigation">
+                <a href="../about.html">about</a>
+                <a href="../time.html">log</a>
+                <a href="../reitera.html">reitera</a>
+                <a href="../drift.html">drift</a>
+                <a href="../contact.html">contact</a>
+            </div>
+        </div>
+
+        <div id="content">
+            <h1>2026-08-03-tiversity</h1>
+
+            <div class="info">
+    Posted on August  3, 2026
+    
+</div>
+
+<h1 id="building-tiversify-a-session-in-documentation-first-development">Building tiversify: a session in documentation-first development</h1>
+<p>We just spent a working session turning a two-document blueprint into a
+working tool. The project is <strong>tiversify</strong>: it looks at the accounts you
+follow on X, measures how many messages each one posted in the last 24
+hours, and reports the accounts that fill your feed the most. If your
+timeline reads like a single loudspeaker, tiversify is a way to notice.</p>
+<p>This post is a recap of how the session went, because the shape of the
+work was almost more interesting than the code itself: we developed
+documentation-first, and we started from a skeletal logic module.</p>
+<h2 id="documentation-first">Documentation first</h2>
+<p>The repository began with <code>README.md</code> and <code>development.md</code> — nothing
+else. Those two files described the whole intended architecture:</p>
+<ul>
+<li>pure business logic in <code>app/Business.hs</code></li>
+<li>X-specific calls (OAuth 1.0a signing, X API v2 endpoints) in <code>app/X.hs</code></li>
+<li>a thin executable entry point in <code>app/Main.hs</code></li>
+</ul>
+<p>The interesting part is that <strong>none of those files existed yet</strong>. The
+docs were the blueprint, and the code was meant to be written into the
+places the docs had already reserved. When we started, the only real
+source file was the skeletal <code>Business.hs</code> that the blueprint pointed
+at. The plan came first; the implementation followed the plan.</p>
+<p>This is a nice way to work on a small tool: the contract between modules
+was decided before any of them were written, which meant we never had to
+“refactor our way” to an architecture. The architecture was already on
+paper.</p>
+<h2 id="the-skeletal-logic-module">The skeletal logic module</h2>
+<p>The original <code>Business.hs</code> was exactly what you’d expect from a
+blueprint — a skeleton. It had the right vocabulary:</p>
+<ul>
+<li><code>Account</code>, an account identified by a handle</li>
+<li><code>Output</code>, how many messages an account sent in the last 24 hours</li>
+<li><code>Rate</code>, the share of messages each account contributes</li>
+<li><code>Percent</code>, a smart-constructed share in <code>[0, 1]</code></li>
+<li><code>computeRates</code>, turning a list of outputs into rates</li>
+</ul>
+<p>But it was a <em>skeleton</em> in the literal sense: it did not compile. A
+<code>newtype</code> with two fields, <code>NoFieldSelectors</code> breaking field access, a
+missing <code>Ord</code> instance for <code>Percent</code>, and a <code>percent</code> function whose type
+promised one thing while <code>computeRates</code> assumed another.</p>
+<p>Rebuilding it was the most satisfying part of the session. We reduced it
+to pure logic with no <code>IO</code> and no <code>undefined</code> anywhere — just types, a
+smart constructor, and a <code>Show</code> instance that renders the report. Pure
+code is easy to test, and later we did exactly that, printing reports
+with varying limits to check the formatting without ever touching the
+network.</p>
+<h2 id="the-x-integration-oauth-1.0a-by-hand">The X integration: OAuth 1.0a by hand</h2>
+<p>The centerpiece was authenticating with the X API v2. We implemented
+OAuth 1.0a user-context signing ourselves: RFC 3986 percent-encoding, a
+carefully assembled signature base string, HMAC-SHA1 over the
+<code>consumer_secret &amp; access_secret</code> key, and the <code>Authorization</code> header.</p>
+<p>This was documentation-first again, at the protocol level. The RFC 5849
+spec was our source of truth, and we wrote a small independent Python
+implementation as an oracle to check our signatures against. (A funny
+detail: RFC 5849’s own worked example is internally inconsistent, so we
+validated against realistic inputs instead of the spec’s example.)</p>
+<p>Three hand-picked signature cases matched the Python reference exactly.</p>
+<h2 id="the-401-that-taught-us-the-value-of-the-oracle">The 401 that taught us the value of the oracle</h2>
+<p>The first live run came back <code>401 Unauthorized</code>. Our signature matched
+our own Python reference, so what was wrong?</p>
+<p>We signed the same request with <code>oauthlib</code>, a battle-tested library.
+With identical credentials and the same URL, <code>oauthlib</code> sailed past
+authentication — it got <code>402 credits depleted</code>, which is a billing
+condition, not an auth failure. The credentials were fine. The
+difference was in the <code>Authorization</code> header format: we were sending
+unquoted, <code>&amp;</code>-separated parameters, but RFC 5849 §3.5.1 requires quoted,
+comma-separated ones. One-line fix, and our binary behaved identically
+to <code>oauthlib</code>.</p>
+<p>The moral: build an independent oracle before you touch the live system,
+and compare against it when something misbehaves.</p>
+<h2 id="the-fine-print">The fine print</h2>
+<p>X now charges per-call credits, so live testing has a real budget. The
+API answered “credits depleted” when the account ran dry — which is why
+a lot of our verification happened without network calls at all:
+<code>--help</code> output, usage errors, and pure report rendering.</p>
+<h2 id="polish-passes">Polish passes</h2>
+<p>Once the core worked, we tightened the tooling:</p>
+<ul>
+<li>a <code>--verbose</code> flag that logs every API call (URL and query) to
+stderr, leaving the report on stdout clean</li>
+<li>a single shared HTTP <code>Manager</code> — one TLS connection pool instead of a
+fresh one per request</li>
+<li><code>optparse-applicative</code> replacing a hand-rolled argument parser</li>
+<li>a <code>-n/--limit</code> option to choose how many accounts to show, which made
+the <code>Int</code> a field of <code>Report</code> (a nice example of the data following
+the feature)</li>
+</ul>
+<p>We also tripped over the usual Haskell ecosystem quirks — the current
+<code>http-client</code> API, <code>aeson</code> 2.x’s <code>KeyMap</code>, and <code>crypton</code> pulling in
+<code>ram</code> instead of <code>memory</code>. All of it handled.</p>
+<h2 id="what-id-repeat">What I’d repeat</h2>
+<p>Documentation first meant we knew where everything lived before we wrote
+it. A skeletal logic module gave us a shape to fill in rather than a
+blank page. And an independent signature oracle turned a confusing <code>401</code>
+into a one-line fix. The proof came at the end: a full end-to-end run —
+following list, every account’s 24-hour volume, and the final report —
+for about $5 in X API credits. A good session, and a working tool.</p>
+
+        </div>
+        <div id="footer">
+            Site proudly generated by
+            <a href="http://jaspervdj.be/hakyll">Hakyll</a>
+        </div>
+    </body>
+</html>
