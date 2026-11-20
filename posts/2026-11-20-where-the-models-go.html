@@ -34,11 +34,11 @@
 (GPU), a generation takes minutes, and the larger model costs about three
 times the smaller one. That makes where you put a model — and whether you
 put one there at all — an engineering decision rather than a taste.</p>
-<h2 id="gigi">gigi</h2>
-<p>I started with the conventional shape. <code>gigi</code> embeds documents and
-questions with a small multilingual encoder, retrieves by cosine similarity
-with maximal marginal relevance (MMR) for diversity, grades the candidates,
-and asks a local model to write one answer. A cross-encoder reranker sat in
+<h2 id="the-standard-approach">The standard approach</h2>
+<p>The first tool, <code>gigi</code>, is the shape you would expect: embed documents and
+questions with a small multilingual encoder, retrieve by cosine similarity
+with maximal marginal relevance (MMR) for diversity, grade the candidates,
+and ask a local model to write one answer. A cross-encoder reranker sits in
 the middle because that is what you do.</p>
 <p>A 288-configuration grid over the fixture corpus said otherwise. Reranking
 lowered mean reciprocal rank from 1.000 to 0.644 and answer basis from
@@ -46,15 +46,15 @@ lowered mean reciprocal rank from 1.000 to 0.644 and answer basis from
 difference at [+0.065, +0.206] with p = 1.00 in favour of leaving it out.
 I removed the component; the encoder stayed. A model earned its place by
 being deleted.</p>
-<h2 id="acciughe">acciughe</h2>
-<p><code>acciughe</code> began as a product file, not a repository. The hypothesis there
-was that a knowledge graph — entities, relations, clusters — could answer
-the questions a folder of text cannot, those spanning notes written years
-apart, and describe the corpus too. It was marked tentative and expected to
-be revised. What shipped was a co-occurrence graph built from stopwords, a
-bounded walk over it, and one model call at the end to phrase the answer.
-The model does not choose which note to read; the graph does, and that is
-why the structure can be inspected.</p>
+<h2 id="enter-a-knowledge-graph">Enter a knowledge graph</h2>
+<p>The second tool, <code>acciughe</code>, began as a product file. Its hypothesis was
+that a graph of what the notes hold — entities, relations, clusters — could
+answer the questions a folder of text cannot, those spanning notes written
+years apart, and describe the corpus too. It was marked tentative and
+expected to be revised. What shipped was a co-occurrence graph built from
+stopwords, a bounded walk over it, and one model call at the end to phrase
+the answer. The model does not choose which note to read; the graph does,
+and that is why the structure can be inspected.</p>
 <p>When the walk cannot support a claim, the command refuses rather than
 writing one. The summary became a count of the words more than one note
 holds: a sentence about a whole corpus has no citations, and this was a
@@ -63,10 +63,10 @@ the quotes behind an answer; it catches fabrication, not relevance.</p>
 <p>The product file stayed where it was written and eventually stopped
 describing the code; the tests became the specification. On the next
 project I kept the document current as measurements arrived.</p>
-<h2 id="grappoli">grappoli</h2>
-<p><code>grappoli</code> is the third attempt at the same problem — a branch too large
-to read — with no question to answer. It produces a map: regions, what each
-one is about, and how they touch.</p>
+<h2 id="an-experimentation-discipline">An experimentation discipline</h2>
+<p>The third tool, <code>grappoli</code>, asks for no answer at all. It produces a map of
+a branch too large to read: regions, what each one is about, and how they
+touch. Every choice in it is a hypothesis with a measurement attached.</p>
 <p>The map is pure arithmetic. Embeddings, cosine similarity, a
 k-nearest-neighbour graph, community detection. No model call builds it. I
 kept term frequency–inverse document frequency (TF-IDF) alongside the
@@ -95,11 +95,10 @@ mixed-language fixture is the edge of what has been scored: adjusted Rand
 index −0.044, with no setting above 0.212, the encoder grouping by language
 where the reference groups by topic. That is a limit of the record, not a
 result about the corpus the tool was built for.</p>
-<p>Across the three, every model instance is an encoder, a generator or a
-judge, and each has a measured reason for sitting where it does — including
-the ones I took out. The reranker, the whole-map conversation and the
-self-judge each gave way to simpler parts that could be checked. Each
-project keeps a
+<p>In all of them, every model instance is an encoder, a generator or a judge,
+and each has a measured reason for sitting where it does — including the
+ones I took out. The reranker, the whole-map conversation and the self-judge
+each gave way to simpler parts that could be checked. Each project keeps a
 file of what is still undecided and the measurement that would settle it.
 That file, more than the code, is where the decisions were made.</p>
 
