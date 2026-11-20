@@ -35,8 +35,9 @@
 times the smaller one. That makes where you put a model — and whether you
 put one there at all — an engineering decision rather than a taste.</p>
 <h2 id="the-standard-approach">The standard approach</h2>
-<p>The first tool, <code>gigi</code>, is the shape you would expect: embed documents and
-questions with a small multilingual encoder, retrieve by cosine similarity
+<p>The first tool, <a href="https://github.com/danse/gigi"><code>gigi</code></a>, is the shape you
+would expect: embed documents and questions with a small multilingual
+encoder, retrieve by cosine similarity
 with maximal marginal relevance (MMR) for diversity, grade the candidates,
 and ask a local model to write one answer. A cross-encoder reranker sits in
 the middle because that is what you do.</p>
@@ -47,8 +48,9 @@ difference at [+0.065, +0.206] with p = 1.00 in favour of leaving it out.
 I removed the component; the encoder stayed. A model earned its place by
 being deleted.</p>
 <h2 id="enter-a-knowledge-graph">Enter a knowledge graph</h2>
-<p>The second tool, <code>acciughe</code>, began as a product file. Its hypothesis was
-that a graph of what the notes hold — entities, relations, clusters — could
+<p>The second tool, <a href="https://github.com/danse/acciughe"><code>acciughe</code></a>, began as
+a product file. Its hypothesis was that a graph of what the notes hold —
+entities, relations, clusters — could
 answer the questions a folder of text cannot, those spanning notes written
 years apart, and describe the corpus too. It was marked tentative and
 expected to be revised. What shipped was a co-occurrence graph built from
@@ -64,8 +66,9 @@ the quotes behind an answer; it catches fabrication, not relevance.</p>
 describing the code; the tests became the specification. On the next
 project I kept the document current as measurements arrived.</p>
 <h2 id="an-experimentation-discipline">An experimentation discipline</h2>
-<p>The third tool, <code>grappoli</code>, asks for no answer at all. It produces a map of
-a branch too large to read: regions, what each one is about, and how they
+<p>The third tool, <a href="https://github.com/danse/grappoli"><code>grappoli</code></a>, asks for
+no answer at all. It produces a map of a branch too large to read: regions,
+what each one is about, and how they
 touch. Every choice in it is a hypothesis with a measurement attached.</p>
 <p>The map is pure arithmetic. Embeddings, cosine similarity, a
 k-nearest-neighbour graph, community detection. No model call builds it. I
